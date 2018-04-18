@@ -1,0 +1,114 @@
+#include <sys/types.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#define BUFFER_SIZE 25
+#define BUFFER 30
+#define READ_END 0
+#define WRITE_END 1
+
+#define READ 0
+#define WRITE 1
+int main(void)
+{
+int c = 0;
+char ch;
+char write_msg[BUFFER_SIZE]="Default VaLue";
+char read_msg[BUFFER_SIZE];
+char a[BUFFER];
+char c1[BUFFER];
+int fd[2];
+int f[2];
+pid_t pid;
+
+
+pipe(f);
+printf("Input a string\n");
+gets(write_msg);
+
+/* create the pipe */
+if (pipe(fd) == -1) 
+{
+printf("Pipe failed");
+return 1;
+}
+
+/* fork a child process */
+pid = fork();
+if (pid < 0) 
+{
+ /* error occurred */
+printf("Fork Failed");
+return 1;
+}
+
+if (pid > 0) 
+{
+ /* parent process */
+/* close the unused end of the pipe */
+close(fd[READ_END]);
+/* write to the pipe */
+write(fd[WRITE_END], write_msg, strlen(write_msg)+1);
+/* close the write end of the pipe */
+close(fd[WRITE_END]);
+
+
+
+sleep(5);
+wait();
+
+/* close the unused end of the pipe */
+close(f[WRITE]);
+/* read from the pipe */
+read(f[READ], c1, BUFFER);
+printf ("Reading Content written from child Process after Toggling the case \n  %s\n",c1) ;
+/* close the write end of the pipe */
+close(f[READ]);
+ 
+
+
+}
+
+else 
+{
+ /* child process */
+/* close the unused end of the pipe */
+close(fd[WRITE_END]);
+/* read from the pipe */
+read(fd[READ_END], read_msg, BUFFER_SIZE);
+//printf ("read from process one %s\n", read_msg) ;
+/* close the write end of the pipe */
+
+
+
+// Toggle case 
+while (read_msg[c] != '\0') {
+      ch = read_msg[c];
+      if (ch >= 'A' && ch <= 'Z')
+         read_msg[c] = read_msg[c] + 32;
+      else if (ch >= 'a' && ch <= 'z')
+         read_msg[c] = read_msg[c] - 32;   
+      c++;   
+   }
+
+// .............. //
+
+strcpy(a,read_msg);
+
+
+
+
+
+/* close the unused end of the pipe */
+close(f[READ]);
+/* write to the pipe */
+write(f[WRITE], a, strlen(a)+1);
+/* close the write end of the pipe */
+close(f[READ]);
+close(f[WRITE]);
+
+}
+
+return 0;
+}
+
